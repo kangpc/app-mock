@@ -1,0 +1,16 @@
+Loading script Myapp/mitm_edits/30_mitm_edit.py
+Proxy server listening at http://*:9030
+Loading script Myapp/mitm_edits/30_mitm_edit.py
+Proxy server listening at http://*:9030
+Loading script Myapp/mitm_edits/30_mitm_edit.py
+Proxy server listening at http://*:9030
+Loading script Myapp/mitm_edits/30_mitm_edit.py
+Proxy server listening at http://*:9030
+Watching for file changes with StatReloader
+[08/Jan/2022 13:35:38] "GET /mock_list/32/ HTTP/1.1" 200 20636
+[08/Jan/2022 13:35:44] "GET /mock_list/32/ HTTP/1.1" 200 20636
+[08/Jan/2022 13:35:44] "GET /mock_list/32/ HTTP/1.1" 200 20636
+[08/Jan/2022 13:35:44] "GET /mock_list/32/ HTTP/1.1" 200 20636
+[08/Jan/2022 13:35:44] "GET /mock_list/32/ HTTP/1.1" 200 20636
+[08/Jan/2022 13:35:47] "GET /project_list/ HTTP/1.1" 200 4915
+[08/Jan/2022 14:06:05] "GET /project_list/ HTTP/1.1" 200 4915

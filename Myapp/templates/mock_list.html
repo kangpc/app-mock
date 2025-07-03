@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>项目详情页</title>
+    {#  lightbox  #}
+    <link rel="shortcut icon" href="/static/bitbug_favicon.ico">
+    <link rel="stylesheet" href="/static/lightbox/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/lightbox/node_modules/prismjs/themes/prism-tomorrow.css"/>
+    <style>
+        th{ text-align: center}
+        td{ text-align: center}
+        button {
+            margin-bottom: 0.5em;
+        }
+        .catch_div{
+            background-color: #e6e6ea;position: fixed;bottom:0;
+            width: 100%;min-height: 500px;box-shadow: 4px -4px 8px #8c8c8c;
+        }
+        .catch_in{
+            margin: 5px;
+            width: 50%;
+            padding: 5px;
+            border: 0;
+        }
+        .catch_btn{
+            margin-top: 5px;border-radius: 2px;height: 34px;background-color: white;
+        }
+        .catch_radio{
+            padding-left: 5px;
+            white-space: nowrap;overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+{% include 'menu.html' %}
+<table class="table table-bordered table-condensed table-striped" style="width: 80%;margin-left: 10%;">
+    <thead style=";background-color: #072f17;color: white">
+        <tr>
+            <th>mock单元标题</th>
+            <th>状态</th>
+            <th style="min-width: 200px;">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in mocks %}
+            <tr>
+                <td style="max-width:500px;white-space: nowrap;overflow-x:auto">
+                    {{ i.name }}
+                </td>
+                <td id="state_{{ i.id }}">
+                    {{ i.state }}
+                </td>
+                <td>
+                    <a href="/mock_on/{{ i.id }}/">启用</a>
+                    <a href="/mock_off/{{ i.id }}/">弃用</a>
+                    <a href="javascript:mock_set({{ i.id }})">设置</a>
+                    <a href="javascript:del_mock({{ i.id }})">删除</a>
+                </td>
+            </tr>
+            <script>
+                color_state = document.getElementById('state_{{ i.id }}')
+                if('{{ i.state }}' == 'True'){
+                    color_state.style.color = 'green'
+                }else{
+                     color_state.style.color = 'red'
+                }
+            </script>
+            {% empty %}
+            <div style="line-height: 50px;height: 50px;;position: absolute;top: 300px;width: 100%;text-align: center"><strong>没有内容</strong></div>
+        {% endfor %}
+    </tbody>
+</table>
+<script>
+    function del_mock(mock_id){
+        $.showConfirm({
+            title: "请确认删除", body: "确定要删除"+mock_id+"么？", textTrue: "确定", textFalse: "取消",
+            onSubmit: function (result) {
+                if (result) {
+                   $.get('/del_mock/'+mock_id+'/',{
+
+                   },function (ret){
+                       document.location.reload()
+                   })
+                } else {
+                }
+            },
+        })
+    }
+</script>
+{# lightbox #}
+<script src="/static/lightbox/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/lightbox/js/bootstrap-show-modal.js"></script>
+<script src="/static/lightbox/node_modules/prismjs/prism.js"></script>
+<script>
+    function project_set(){
+         $.showModal({
+            title: '请设置项目',
+            body:
+                '<form><div class="form-group row">' +
+                '<div class="col-3"><label for="text" class="col-form-label">项目名称</label></div>' +
+                '<div class="col-9"><input type="text" class="form-control" id="project_name_input" value="{{ project.name }}" /></div>' +
+                '</div>' +
+                    '<div class="form-group row">' +
+                '<div class="col-3"><label for="text" class="col-form-label">黑域名</label></div>' +
+                '<div class="col-9"><input type="text" class="form-control" id="black_hosts" placeholder="用英文逗号,隔开（黑域名不被mock）" value="{{ project.black_hosts }}"  /></div>' +
+                '</div>' +
+                    '<div class="form-group row">' +
+                '<div class="col-3"><label for="text" class="col-form-label">白域名</label></div>' +
+                '<div class="col-9"><input type="text" class="form-control" id="white_hosts" placeholder="用英文逗号,隔开（如果不为空，则只mock白域名）" value="{{ project.white_hosts }}" /></div>' +
+                '</div>' +
+                '</form>',
+            footer: '<button type="button" class="btn btn-link" data-dismiss="modal">取消</button><button type="submit" class="btn btn-primary">保存</button>',
+            onCreate: function (modal) {
+                // create event handler for form submit and handle values
+                $(modal.element).on("click", "button[type='submit']", function (event) {
+                    event.preventDefault()
+                    var $form = $(modal.element).find("form")
+
+                    // 发送请求给后端
+                    $.get('/save_project/',{
+                        "new_name":$form.find("#project_name_input").val(),
+                        "black_hosts":$form.find("#black_hosts").val(),
+                        "white_hosts":$form.find("#white_hosts").val(),
+                        "project_id":'{{ project_id }}'
+                    },function (ret){
+                        modal.hide()
+                        document.location.reload()
+                    })
+                })
+            }
+        })
+    }
+    function mock_set(mock_id){
+         $.get('/get_mock/',{
+             'mock_id':mock_id
+         },function (ret){
+             console.log(ret)
+             $.showModal({
+            title: '请设置mock单元',
+            body:
+                '<form>' +
+                '<div class="form-group row">' +
+                '<div class="col-3"><label for="text" class="col-form-label">mock名称</label></div>' +
+                '<div class="col-9"><input type="text" class="form-control" value="'+ret.mock.name+'" id="mock_name"/></div>' +
+                '</div>' +
+                '<div class="form-group row">' +
+                '<div class="col-3"><label for="text" class="col-form-label">url关键字</label></div>' +
+                '<div class="col-9"><input type="text" class="form-control" value="'+ret.mock.catch_url+'" id="catch_url" placeholder="写url内关键字" /></div>' +
+                '</div>' +
+                '<div class="form-group row">' +
+                '<div class="col-3"><label for="text" class="col-form-label">时间控制</label></div>' +
+                '<div class="col-9"><input type="text" class="form-control" value="'+ret.mock.mock_time+'" id="mock_time" placeholder="必须写数字(秒),如果为空/0/小于放行模式实际请求时间则不生效" /></div>' +
+                '</div>' +
+                '<div class="form-group row">' +
+                '<div class="col-3"><label for="text" class="col-form-label">返回头</label></div>' +
+                '<div class="col-9"><textarea id="response_headers" class="form-control" rows="3" placeholder=r"必须是json格式如：{"a":1,"b":"bb"}"></textarea></div>' +
+                '</div>' +
+                '<div class="form-group row">' +
+                '<div class="col-3"><label for="text" class="col-form-label">模式选择</label></div>' +
+                '<div class="col-9"><select  class="form-control"   name="" id="model"><option value="lj">拦截模式</option><option value="fx">放行模式</option></select></div>' +
+                '</div>' +
+                '<div class="form-group row" id="display_fx_0">' +
+                '<div class="col-3"><label for="text" class="col-form-label">返回值更新策略</label></div>' +
+                '<div class="col-9"><textarea id="mock_response_body" rows="3" class="form-control"  placeholder="每行一个规则，具体规则如下:' +
+                '字符串替换：旧字符串=>新字符串' +
+                'json路径替换：路径=真实值 比如 a.b.2=[1,2,3]"></textarea></div>' +
+                '</div>' +
+                '<div class="form-group row" id="display_lj_0">' +
+                '<div class="col-3"><label for="text" class="col-form-label">http状态码</label></div>' +
+                '<div class="col-9"><input id="state_code" type="text" class="form-control" value="'+ret.mock.state_code+'" placeholder="必须写整形且存在的http状态码" /></div>' +
+                '</div>' +
+                '<div class="form-group row" id="display_lj_1">' +
+                '<div class="col-3"><label for="text" class="col-form-label">返回体写死</label></div>' +
+                '<div class="col-9"><textarea id="mock_response_body_lj" class="form-control" rows="3" placeholder="写死的返回值"></textarea></div>' +
+                '</div>' +
+                '</form>',
+            footer: '<button type="button" class="btn btn-link" data-dismiss="modal">取消</button><button type="submit" class="btn btn-primary">保存</button>',
+            onCreate: function (modal) {
+                // create event handler for form submit and handle values
+                $(modal.element).on("click", "button[type='submit']", function (event) {
+                    event.preventDefault()
+                    var $form = $(modal.element).find("form")
+                    // 发送请求给后端
+                    $.get('/save_mock/',{
+                        "mock_id":mock_id,
+                        "mock_name":$form.find("#mock_name").val(),
+                        "catch_url":$form.find("#catch_url").val(),
+                        "mock_response_body":$form.find("#mock_response_body").val(),
+                        "model":$form.find("#model").val(),
+                        "response_headers":$form.find("#response_headers").val(),
+                        "state_code":$form.find('#state_code').val(),
+                        "mock_response_body_lj":$form.find('#mock_response_body_lj').val(),
+                        "mock_time":$form.find('#mock_time').val()
+                    },function (ret){
+                        modal.hide()
+                        document.location.reload()
+                    })
+                })
+            }
+             })
+             document.getElementById('model').value= ret.mock.model;
+             // 负责控制输入的显示和隐藏
+             function change_model(model){
+                if(model=='lj'){
+                    // 拦截模式
+                    document.getElementById('display_lj_0').style.display = '';
+                    document.getElementById('display_lj_1').style.display = '';
+                    document.getElementById('display_fx_0').style.display = 'none';
+                }else {
+                    // 放行模式
+                    document.getElementById('display_lj_0').style.display = 'none';
+                    document.getElementById('display_lj_1').style.display = 'none';
+                    document.getElementById('display_fx_0').style.display = '';
+                }
+             }
+             // 打开弹窗时默认调用
+             change_model(ret.mock.model);
+             document.getElementById('response_headers').innerText = ret.mock.response_headers;
+              document.getElementById('mock_response_body').innerText = ret.mock.mock_response_body;
+             document.getElementById('mock_response_body_lj').innerText = ret.mock.mock_response_body_lj;
+
+             // 当select模式选择变更后，调用
+             $("#model").change(function (){
+                 change_model(document.getElementById('model').value)
+             })
+         })
+    }
+</script>
+
+
+<div id="catch_div" class="catch_div" style="display: none">
+    <textarea id="request_data" placeholder="request_data" class="catch_in"  rows="10" style="float: right;width: -webkit-calc(50% - 20px)"></textarea>
+    <input type="text" id="filter_str" placeholder="请输入筛选的关键字" class="catch_in" style="float: left;width: 30%">
+    <button onclick="close_catch()" class="catch_btn" style="width: -webkit-calc(5% - 10px);"><strong>close</strong></button>
+    <button onclick="clear_catch()" class="catch_btn" style="width: -webkit-calc(5% - 5px);"><strong>clear</strong></button>
+    <button onclick="import_catch()" class="catch_btn" style="width: -webkit-calc(10%);"><strong>import</strong></button>
+    <div id="catch_log" class="catch_in" style="white-space: nowrap;overflow-y: auto;max-height: 463px;min-height: 463px;background-color: white;float: left">
+    </div>
+    <textarea id="response_data" placeholder="response_data" class="catch_in"  rows="10" style="float: right;width: -webkit-calc(50% - 20px)"></textarea>
+</div>
+<input type="text" id="chose_catch" style="display: none">
+<script>
+    function show_catch() {
+        // 打开界面
+        $('#catch_div').css('display','block')
+        // 无限读取
+        setInterval("get_catch_log()",1000);
+    }
+    function get_catch_log() {
+        $.get("/get_catch_log/",{
+            "project_id":"{{ project_id }}"
+        },function (ret) {
+            //生成记录
+            var catch_logs = ret.res;
+            var mother =document.getElementById('catch_log');
+            for(var cl=0;cl<catch_logs.length;cl++){
+                if(catch_logs[cl].url.indexOf(document.getElementById("filter_str").value) == -1){
+                    continue
+                }
+                var d = document.createElement('div');
+                d.className = 'catch_radio';
+                d.abcd = cl;
+                d.onclick = function () {
+                    document.getElementById('chose_catch').value = JSON.stringify(catch_logs[this.abcd]);
+                    document.getElementById('request_data').value = "【请求方式】"+catch_logs[this.abcd].method+"\n\n【请求url】"+catch_logs[this.abcd].url;
+                    document.getElementById('response_data').value = "【响应头】"+(catch_logs[this.abcd].response_headers)+"\n\n【响应体】"+catch_logs[this.abcd].response_content;
+                };
+                var l = document.createElement('label');
+                l.style.height = '20px';
+                l.style.lineHeight = '20px';
+                var i = document.createElement('input');
+                i.type='radio';
+                i.name='radio_catch_log';
+                l.appendChild(i)
+                l.insertAdjacentText('beforeEnd',' '+'【'+catch_logs[cl].method+'】'+catch_logs[cl].url)
+                d.appendChild(l)
+                mother.appendChild(d)
+            }
+        })
+    }
+    function clear_catch(){
+        document.getElementById('request_data').value ='';
+        document.getElementById('response_data').value = '';
+        document.getElementById('catch_log').innerHTML = '';
+    }
+    function close_catch() {
+        // 刷新页面
+        document.location.reload()
+    }
+    function import_catch(){
+        var chose_catch = document.getElementById('chose_catch').value;
+        if(chose_catch == ''){
+            alert('请先选择一个请求记录！')
+            return
+        }
+        $.post('/import_catch/',{
+            "project_id":"{{ project_id }}",
+            "chose_catch":chose_catch
+        },function (ret) {
+            document.location.reload()
+        })
+    }
+</script>
+</body>
+</html>

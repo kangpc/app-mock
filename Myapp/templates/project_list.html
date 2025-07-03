@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>项目列表页</title>
+    <link rel="shortcut icon" href="/static/bitbug_favicon.ico">
+     <link rel="stylesheet" href="/static/lightbox/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/lightbox/node_modules/prismjs/themes/prism-tomorrow.css"/>
+    <style>
+        th{ text-align: center}
+        td{ text-align: center}
+    </style>
+</head>
+<body>
+
+
+{% include 'menu.html' %}
+
+
+<table class="table table-bordered table-condensed table-striped" style="width: 80%;margin-left: 10%;">
+    <thead style="background-color: #2d2f2f;color: white">
+        <tr>
+            <th>项目标题</th>
+            <th>创建者</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in projects %}
+            <tr>
+                <td>
+                    {{ i.name }}
+                </td>
+                <td>
+                    {{ i.creater }}
+                </td>
+                <td>
+                    <a href="/mock_list/{{ i.id }}/">进入</a>
+                    <a href="/del_project/{{ i.id }}/">删除</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{# lightbox #}
+<script src="/static/lightbox/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/lightbox/js/bootstrap-show-modal.js"></script>
+<script src="/static/lightbox/node_modules/prismjs/prism.js"></script>
+
+<script>
+    function project_data(){
+        $.get('/project_data/',{
+        },function (ret){
+            $.showModal({title: "平台项目数据", body: '(id,name,单元数量,启动次数,mock次数) <br><br> <br>'+ ret})
+        })
+    }
+</script>
+
+
+</body>
+</html>
