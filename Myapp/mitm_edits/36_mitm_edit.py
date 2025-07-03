@@ -4,7 +4,7 @@ import threading
 from mitmproxy import http
 import django
 import os,sys
-sys.path.append("/Users/wangzijia/AppMock")
+sys.path.append("/Users/yiyan/AppMock")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE","AppMock.settings")
 django.setup()
 from Myapp.models import *

@@ -49,7 +49,7 @@ class Linux(object):
 
 
 def ok():
-    s = Linux('101.43.153.203','wangzijia','wangzijia')
+    s = Linux('101.43.153.203','yiyan','yiyan')
     s.connect()
     s.send('pwd')
     s.close()
